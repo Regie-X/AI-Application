@@ -7,7 +7,8 @@ import google.generativeai as genai
 import json
 import io
 from PIL import Image
-import PyPDF2 # New import for PDF processing
+import PyPDF2
+import base64 # New import for PDF processing
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -15,6 +16,40 @@ st.set_page_config(
     page_icon="⚙️",
     layout="wide"
 )
+
+
+st.set_page_config(layout="wide")
+
+# Inject CSS with local image
+def set_bg_hack(img_path):
+    st.markdown(
+         f"""
+         <style>
+         .stApp {{
+             background: url("data:image/png;base64,{img_to_bytes(img_path)}");
+             background-size: cover;
+             background-position: center;
+             background-repeat: no-repeat;
+             background-attachment: fixed;
+         }}
+         /* Dark overlay */
+         .stApp::before {{
+             content: "";
+             position: absolute;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             background-color: rgba(0, 0, 0, 0.3);
+             z-index: -1;
+         }}
+         </style>
+         """,
+         unsafe_allow_html=True
+     )
+
+set_bg_hack("images/background.jpg")
+
 
 # --- API Key Configuration ---
 # IMPORTANT: For deploying on Streamlit Community Cloud or similar platforms,
