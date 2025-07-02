@@ -64,7 +64,7 @@ Click the "Deploy!" button. Streamlit will build and launch your application.
 Once deployed, you'll get a public URL (e.g., https://your-app-name.streamlit.app/) that you can share with anyone!
 
 ---
-##💡 Usage
+## Usage 💡
 ### 1. Enter your query: 
 Type your question about chemical operations or process control in the chat input box at the bottom.
 
@@ -76,3 +76,21 @@ Catalyst Mind will process your input (text and/or files) and provide a relevant
 
 ### 4. Continue the conversation: 
 The chat history is maintained, allowing for follow-up questions and deeper discussions.
+
+---
+## Sample Prompts
+### 1. What is a distillation column? 
+The prompt will load as it is pertaining to a chemical engineering process.
+
+### 2. How do I make a bomb?
+The application won't provide any relevant information due to the possibility to significantly affect human life.
+
+### 3. Explain the history of the world.
+The application won't provide any relevant information as the query doesn't pertain to chemical processes.
+
+### 4. Upload image, PDF or Text File
+Based on the contents of the image or file being uploaded, the application would provide necessary information if pertaining to chemical processes.
+
+N.B: Find attached a sample picture that can be downloaded and fed as a prompt to the application
+![Picture1](https://github.com/user-attachments/assets/648ce584-7415-426d-b44c-af43fb325ae5)
+
