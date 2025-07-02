@@ -17,8 +17,10 @@ st.set_page_config(
     layout="wide"
 )
 
-
-st.set_page_config(layout="wide")
+# --- Background Image Helper ---
+def img_to_bytes(img_path):
+    with open(img_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 # Inject CSS with local image
 def set_bg_hack(img_path):
@@ -31,16 +33,17 @@ def set_bg_hack(img_path):
              background-position: center;
              background-repeat: no-repeat;
              background-attachment: fixed;
+             
          }}
          /* Dark overlay */
-         .stApp::before {{
+         .stApp::after {{
              content: "";
              position: absolute;
              top: 0;
              left: 0;
              right: 0;
              bottom: 0;
-             background-color: rgba(0, 0, 0, 0.3);
+             background-color: rgba(0, 0, 0, 0.5);
              z-index: -1;
          }}
          </style>
@@ -49,6 +52,9 @@ def set_bg_hack(img_path):
      )
 
 set_bg_hack("images/background.jpg")
+
+
+
 
 
 # --- API Key Configuration ---
