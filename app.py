@@ -23,8 +23,7 @@ st.set_page_config(
 
 
 # --- API Key Configuration ---
-#api_key = st.secrets.get("GEMINI_API_KEY")
-api_key = "AIzaSyBCjtvQ7kvYQcImqRToLSDyfkofCGiRM74"
+api_key = st.secrets.get("GEMINI_API_KEY")
 
 if api_key is None:
     st.error("Google Generative AI API key is not set. Please configure it in Streamlit Secrets.")
