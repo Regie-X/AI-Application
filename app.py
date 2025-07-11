@@ -14,12 +14,78 @@ import cantera as ct
 import requests # New import for web fetching
 from bs4 import BeautifulSoup # New import for HTML parsing
 
+
+
+
+
 # --- Page Configuration ---
 st.set_page_config(
     page_title="Catalyst Mind",
-    page_icon="⚙️",
-    layout="wide"
+    page_icon="⚛️",
+    layout="centered"
 )
+
+
+st.markdown("""
+<style>
+    /* Main container centering */
+    .main .block-container {
+        max-width: 200px;  /* Adjust width as needed */
+        margin: auto;
+        padding-left: 5rem;
+        padding-right: 5rem;
+    }
+    
+    
+    /* Chat message centering */
+    .stChatMessage {
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+
+
+""", unsafe_allow_html=True)
+
+# --- Centered Title Section with Enhanced Styling ---
+st.markdown("""
+<style>
+    .title-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .main-title {
+        font-size: 2.5rem !important;
+        font-weight: 700;
+        color: #58a6ff;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+        margin-top: 0;
+        letter-spacing: 0.5px;
+    }
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #58a6ff, transparent);
+        margin: 1rem auto;
+        width: 60%;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Title and Subtitle
+st.markdown("""
+<div class="title-container">
+    <div class="main-title">⚛️Catalyst Mind </div>
+    <div class="subtitle">Advanced chemical process analysis powered by Gemini AI and Cantera</div>
+    <div class="divider"></div>
+</div>
+""", unsafe_allow_html=True)
+
+
 
 
 # --- API Key Configuration ---
@@ -31,9 +97,6 @@ if api_key is None:
     st.stop()
 
 genai.configure(api_key=api_key)
-
-st.title("Catalyst Mind - Google Generative AI ChatBot ⚙️")
-st.caption("A ChatBot powered by Google Generative AI for Chemical Operations and Process Control")
 
 
 # --- Professional Dark Theme Sidebar with Consistent Font Sizing ---
