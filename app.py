@@ -24,6 +24,7 @@ st.set_page_config(
 
 # --- API Key Configuration ---
 api_key = st.secrets.get("GEMINI_API_KEY")
+api_key = "AIzaSyDa9i75ooUlyakmOT35YFOR58g0TG-a2T0"
 
 if api_key is None:
     st.error("Google Generative AI API key is not set. Please configure it in Streamlit Secrets.")
@@ -34,16 +35,156 @@ genai.configure(api_key=api_key)
 st.title("Catalyst Mind - Google Generative AI ChatBot ⚙️")
 st.caption("A ChatBot powered by Google Generative AI for Chemical Operations and Process Control")
 
-st.sidebar.title("Navigation")
-st.sidebar.markdown("Welcome to the Catalyst Mind ChatBot! This application allows you to interact with a Google Generative AI model to generate responses based on your input text. You can ask questions or provide prompts related to chemical operations and process control.")
-st.sidebar.markdown("### How to Use:")
-st.sidebar.markdown("1. Enter your text in the chat input area.")
-st.sidebar.markdown("2. Optionally, upload an image, PDF, or TXT file.")
-st.sidebar.markdown("3. Catalyst Mind will respond, potentially using its specialized tools for calculations or web searches.")
-st.sidebar.markdown("### About:")
-st.sidebar.markdown("This application leverages Google Generative AI and integrates with powerful tools like Cantera for chemical calculations and web browsing for real-time information retrieval.")
-st.sidebar.markdown("### Contact:")
 
+# --- Professional Dark Theme Sidebar with Consistent Font Sizing ---
+with st.sidebar:
+    st.title("⚗️ Catalyst Mind")
+    st.markdown("""
+    <style>
+    .sidebar .sidebar-content {
+        background-color: #0e1117;
+        color: white;
+    }
+    .capability-card {
+        background-color: #262730;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        border-left: 4px solid #4a6fa5;
+        color: #ffffff !important;
+        font-size: 14px;  /* Base font size for all cards */
+    }
+    .feature-icon {
+        font-size: 1.5rem;
+        margin-right: 10px;
+        vertical-align: middle;
+        color: #58a6ff;
+    }
+    .st-expander {
+        background-color: #262730;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    .st-expander .streamlit-expanderHeader {
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 15px;  /* Header font size */
+    }
+    .st-expander .streamlit-expanderContent {
+        color: #ffffff;
+        font-size: 14px;  /* Ensures content matches card font size */
+    }
+    ul, ol {
+        margin-bottom: 0;
+        padding-left: 20px;
+        font-size: 14px;  /* List items match card font size */
+    }
+    li {
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+    strong {
+        font-weight: 600;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Capabilities Section with Expanders
+    with st.expander("🧪 **AI Capabilities**", expanded=True):
+        # Thermodynamics Section
+        with st.expander("🌡️ **Thermodynamic Analysis**", expanded=False):
+            st.markdown("""
+            <div class="capability-card">
+                <ul>
+                    <li>Species property determination (H, S, G, Cp)</li>
+                    <li>Phase equilibrium calculations</li>
+                    <li>Reaction enthalpy/entropy analysis</li>
+                    <li>Temperature/pressure effects modeling</li>
+                    <li>Ideal/non-ideal system evaluation</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Reaction Engineering Section
+        with st.expander("⚡ **Reaction Engineering**", expanded=False):
+            st.markdown("""
+            <div class="capability-card">
+                <ul>
+                    <li>Adiabatic flame temperature calculation</li>
+                    <li>Equilibrium composition determination</li>
+                    <li>Batch/continuous reactor analysis</li>
+                    <li>Reaction kinetic parameter estimation</li>
+                    <li>Catalytic reaction evaluation</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Process Analysis Section
+        with st.expander("📊 **Process Analysis**", expanded=False):
+            st.markdown("""
+            <div class="capability-card">
+                <ul>
+                    <li>Mass/energy balance calculations</li>
+                    <li>Process optimization scenarios</li>
+                    <li>Safety parameter evaluation (LFL/UFL, AIT)</li>
+                    <li>Equipment sizing guidance</li>
+                    <li>Process flow diagram interpretation</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Technical Specifications Section
+    with st.expander("🔧 **Technical Specifications**", expanded=False):
+        st.markdown("""
+        <div class="capability-card">
+            <ul>
+                <li><strong>AI Engine:</strong> Gemini 1.5 Flash</li>
+                <li><strong>Thermodynamics:</strong> Cantera 3.0</li>
+                <li><strong>Mechanisms:</strong> GRI-Mech 3.0</li>
+                <li><strong>Database:</strong> NASA polynomials (300-5000K)</li>
+                <li><strong>Precision:</strong> 64-bit floating point</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # How To Use Section
+    with st.expander("🛠️ **How To Use**", expanded=False):
+        st.markdown("""
+        <div class="capability-card">
+            <ol>
+                <li>Enter query in natural language</li>
+                <li>Upload relevant files if needed</li>
+                <li>Receive AI-powered analysis</li>
+                <li>View detailed calculations</li>
+                <li>Request further refinements</li>
+            </ol>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # --- Download Chat Session ---
+    if st.sidebar.button("📥 Download This Session"):
+        import datetime
+        import json
+        session_data = {
+            "timestamp": str(datetime.datetime.now()),
+            "chat": st.session_state.get("messages", [])
+        }
+        session_json = json.dumps(session_data, indent=2)
+
+        b64 = base64.b64encode(session_json.encode()).decode()
+        href = f'<a href="data:file/json;base64,{b64}" download="catalyst_mind_session.json">Click here to download</a>'
+        st.sidebar.markdown(href, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; font-size: 0.8em; color: #aaa;">
+        For chemical engineering professionals<br>
+        v2.1 | Secure API Connection
+    </div>
+    """, unsafe_allow_html=True)
+
+    
 
 # --- Cantera Tool Definitions ---
 def calculate_adiabatic_flame_temperature(fuel: str, oxidizer: str, equivalence_ratio: float, initial_temp_k: float, initial_pressure_pa: float) -> str:
