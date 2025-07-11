@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup # New import for HTML parsing
 st.set_page_config(
     page_title="Catalyst Mind",
     page_icon="⚛️",
-    layout="centered"
+    layout="wide"
 )
 
 
