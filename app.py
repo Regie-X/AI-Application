@@ -464,139 +464,78 @@ def generate_phase_diagram(components: list, temperature_k: float, pressure_pa: 
         return json.dumps({"status": "error", "message": f"Phase diagram generation failed: {str(e)}"})
 
 
-def get_safety_information_from_url(url: str, keyword: str = "") -> str:
+
+
+def get_wikipedia_data(query: str) -> str:
     """
-    Fetches content from a given URL and attempts to extract relevant safety information based on a keyword.
-    This tool is designed to mimic web browsing for safety data sheets (SDS) or chemical safety pages.
-
-    Args:
-        url (str): The URL of the safety data sheet (SDS) or chemical safety page (e.g., from OSHA, PubChem, CDC).
-        keyword (str): An optional keyword to specifically look for within the page content (e.g., 'flammability', 'exposure limits', 'first aid').
-
-    Returns:
-        str: A JSON string containing a summary of the extracted safety information,
-             or an error message.
-    """
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        response = requests.get(url, headers=headers, timeout=15) # Increased timeout
-        response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Prioritize common content areas for text extraction
-        text_content_elements = soup.find_all(['p', 'div', 'li', 'h1', 'h2', 'h3', 'span'])
-        full_text = "\n".join([elem.get_text(separator=' ', strip=True) for elem in text_content_elements])
-        
-        extracted_info = ""
-        if keyword:
-            # Search for keyword in the extracted text
-            relevant_lines = [line for line in full_text.split('\n') if keyword.lower() in line.lower()]
-            if relevant_lines:
-                # Concatenate a few relevant lines, ensuring not to exceed a reasonable length
-                extracted_info = "\n".join(relevant_lines[:5]) # Get up to 5 relevant lines
-                if len(extracted_info) > 500: # Truncate if still too long
-                    extracted_info = extracted_info[:500] + "..."
-            
-            if not extracted_info:
-                extracted_info = f"No specific information found for '{keyword}' on the page."
-        else:
-            # If no keyword, provide a general summary of the page's text
-            extracted_info = full_text[:1000] + "..." if len(full_text) > 1000 else full_text
-            if not extracted_info.strip():
-                extracted_info = "No significant text content could be extracted from the page."
-            else:
-                extracted_info = f"General content summary from page:\n{extracted_info}"
-
-        return json.dumps({
-            "status": "success",
-            "url": url,
-            "keyword_searched": keyword,
-            "extracted_safety_info": extracted_info
-        })
-    except requests.exceptions.RequestException as e:
-        return json.dumps({
-            "status": "error",
-            "message": f"Failed to fetch content from URL: {str(e)}. The URL might be invalid, blocked, or network issue.",
-            "url": url,
-            "keyword_searched": keyword
-        })
-    except Exception as e:
-        return json.dumps({
-            "status": "error",
-            "message": f"Error processing safety information from URL: {str(e)}",
-            "url": url,
-            "keyword_searched": keyword
-        })
-
-def get_rsc_data(query: str) -> str:
-    """
-    Searches the Royal Society of Chemistry (RSC) website for information related to a chemical query.
-    This tool constructs a search URL for RSC and fetches content from the search results.
-
-    Args:
-        query (str): The chemical or scientific query to search on the RSC website.
-
-    Returns:
-        str: A JSON string containing a summary of the extracted RSC data from search results, or an error message.
-    """
-    # RSC search URL. Using 'q' for query parameter.
-    search_url = f"https://www.rsc.org/search-results?search={requests.utils.quote(query)}"
+    Fetches the full main content of a Wikipedia article based on a query.
     
+    Args:
+        query (str): The chemical or scientific topic to retrieve from Wikipedia.
+        
+    Returns:
+        str: A JSON string containing the article title, full text, and page metadata.
+    """
+    search_url = f"https://en.wikipedia.org/wiki/{requests.utils.quote(query)}"
+
     try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        response = requests.get(search_url, headers=headers, timeout=15) # Increased timeout
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(search_url, headers=headers, timeout=15)
         response.raise_for_status()
-        
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        results_snippets = []
-        # Inspect RSC search results page HTML to find appropriate classes/tags
-        # These are common patterns, may need adjustment based on current RSC site structure
-        for item in soup.find_all('li', class_='search-result'): # Example: common class for search results
-            title_tag = item.find(['h2', 'h3', 'a'], class_='result-title') # Look for title in h2/h3 or a tag
-            link_tag = item.find('a')
-            snippet_tag = item.find('p', class_='result-snippet') # Example: common class for snippet
 
-            title = title_tag.get_text(strip=True) if title_tag else 'No Title'
-            link = link_tag['href'] if link_tag and 'href' in link_tag.attrs else '#'
-            snippet = snippet_tag.get_text(strip=True) if snippet_tag else 'No snippet available.'
-            
-            # Ensure link is absolute
-            if link and not link.startswith(('http://', 'https://')):
-                if link.startswith('/'):
-                    link = f"https://www.rsc.org{link}" # Prepend base URL if relative
-                else:
-                    link = f"https://www.rsc.org/{link}" # Assume relative path from base
+        # Extract title
+        page_title = soup.find("h1", id="firstHeading").text.strip()
 
-            results_snippets.append(f"Title: {title}\nLink: {link}\nSnippet: {snippet}")
-            if len(results_snippets) >= 3: # Limit to top 3 results for brevity
-                break
+        # Extract the main content
+        content_div = soup.find("div", class_="mw-parser-output")
+        paragraphs = content_div.find_all(['p', 'h2', 'h3', 'ul', 'ol'])  # Main content only
 
-        if results_snippets:
-            extracted_info = "\n\n---\n\n".join(results_snippets)
+        article_text = ""
+        for tag in paragraphs:
+            if tag.name in ["h2", "h3"]:
+                section_title = tag.get_text(strip=True).replace("[edit]", "")
+                article_text += f"\n\n### {section_title}\n\n"
+            else:
+                text = tag.get_text(strip=True)
+                if text:
+                    article_text += f"{text}\n\n"
+
+        if article_text.strip():
+            return json.dumps({
+                "status": "success",
+                "query": query,
+                "wikipedia_url": search_url,
+                "title": page_title,
+                "article_text": article_text.strip()
+            })
         else:
-            extracted_info = f"No relevant search results found on Royal Society of Chemistry for query '{query}'."
+            return json.dumps({
+                "status": "error",
+                "query": query,
+                "wikipedia_url": search_url,
+                "message": "No article text found on the page."
+            })
 
-        return json.dumps({
-            "status": "success",
-            "query": query,
-            "rsc_search_url": search_url,
-            "extracted_rsc_info": extracted_info
-        })
     except requests.exceptions.RequestException as e:
         return json.dumps({
             "status": "error",
-            "message": f"Failed to search Royal Society of Chemistry: {str(e)}. Network error or site blocked.",
             "query": query,
-            "rsc_search_url": search_url
+            "wikipedia_url": search_url,
+            "message": f"Network error: {str(e)}"
         })
     except Exception as e:
         return json.dumps({
             "status": "error",
-            "message": f"Error processing Royal Society of Chemistry data: {str(e)}",
-            "query": query
+            "query": query,
+            "wikipedia_url": search_url,
+            "message": f"Parsing error: {str(e)}"
         })
+
+
 
 
 # --- Map tool names to actual functions ---
@@ -607,8 +546,7 @@ available_tools = {
     "get_species_thermodynamic_properties": get_species_thermodynamic_properties,
     "process_simulation_snapshot": process_simulation_snapshot,
     "generate_phase_diagram": generate_phase_diagram,
-    "get_safety_information_from_url": get_safety_information_from_url,
-    "get_rsc_data": get_rsc_data
+    "get_wikipedia_data": get_wikipedia_data
 }
 
 
@@ -617,7 +555,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 # --- System Instruction Prompt (UPDATED for Manual Tool Use) ---
 system_instruction_prompt = """
-You are Catalyst Mind, a chatbot powered by Google Generative AI, specializing strictly in chemical operations and process control. Your role is to provide accurate, detailed responses to queries about chemical processes, control strategies, and related engineering principles, using provided tools for calculations and data retrieval when necessary.
+You are Catalyst Mind, an intelligent chemical engineering agent powered by Google Generative AI, specializing strictly in chemical operations and process control. Your role is to provide accurate, detailed responses to queries about chemical processes, control strategies, and related engineering principles, using provided tools for calculations and data retrieval when necessary. You are capable of delivering expert solutions and recommendations based on the latest chemical engineering practices and data.
 
 Core Instructions:
 Domain Restriction: Respond only to queries within chemical operations and process control. For out-of-scope queries, reply: "I'm sorry, but that query is outside my expertise in chemical operations and process control. Please ask about chemical processes or related topics."
@@ -696,12 +634,22 @@ Ensure the mole fractions sum to 1.0.
 
 
 
-get_safety_information_from_url: Extracts safety information from a URL (e.g., SDS, OSHA page).
-url (string, valid URL)
-keyword (string, optional, e.g., 'flammability')
+- get_wikipedia_data: Fetches accurate text data of a Wikipedia article based on a query.
+Note: This tool is for retrieving detailed information from Wikipedia articles related to chemical processes and operations.
+This requires a query string and outputs text data.
+If the query involves asking for indepth knowledge about a chemical process or a chemical compound, it should be used to fetch the article content.
+    For example, if the prompt is "What is benzene?" or a prompt that asks for basic information about a chemical compound or process, there is no need to use this tool to fetch the article content.
+    However, a prompt such as "Provide a detailed overview of benzene" or a prompt that asks beyond basic information about a chemical compound or process should, use this tool to fetch the article content.
+Based on the user prompt, obtain the keyword or topic they are interested in, and use that as the query input to fetch the relevant Wikipedia article.
+If the prompt asks for safety operations for a chemical compound or process, always use this tool to fetch the article content.
+Ensure the query is specific enough to retrieve relevant information (e.g., "Chemical engineering", "Catalysis", "Thermodynamics").
+For this particular tool, don't return the JSON output directly in the response. Instead, return a summary of the contents.
+The summary should include the title of the article, a brief overview of the main content, and a deep breakdown of the relevant sections that pertain to the user's query.
+If the query is about safety information, always use this tool to fetch the article content.
+Don't mention Wikipedia in your response to the query. State that the information is retrieved from a reliable source.
+    query (string, e.g., 'Chemical engineering', "Ammonia")
 
-get_rsc_data: Searches Royal Society of Chemistry website for chemical data.
-query (string, e.g., 'methane properties')
+    
 
 Workflow for Handling Queries:
 Parse User Intent: Determine if the query requires:
