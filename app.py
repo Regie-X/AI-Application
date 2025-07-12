@@ -89,8 +89,8 @@ st.markdown("""
 
 
 # --- API Key Configuration ---
-# api_key = st.secrets.get("GEMINI_API_KEY")
-api_key = "AIzaSyBCjtvQ7kvYQcImqRToLSDyfkofCGiRM74"
+api_key = st.secrets.get("GEMINI_API_KEY")
+
 
 if api_key is None:
     st.error("Google Generative AI API key is not set. Please configure it in Streamlit Secrets.")
@@ -165,6 +165,7 @@ with st.sidebar:
                     <li>Reaction enthalpy/entropy analysis</li>
                     <li>Temperature/pressure effects modeling</li>
                     <li>Ideal/non-ideal system evaluation</li>
+                    <li>Adiabatic flame temperature calculations</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -179,6 +180,7 @@ with st.sidebar:
                     <li>Batch/continuous reactor analysis</li>
                     <li>Reaction kinetic parameter estimation</li>
                     <li>Catalytic reaction evaluation</li>
+                    <li>Process simulation</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -193,6 +195,7 @@ with st.sidebar:
                     <li>Safety parameter evaluation (LFL/UFL, AIT)</li>
                     <li>Equipment sizing guidance</li>
                     <li>Process flow diagram interpretation</li>
+                    <li>Dynamic process simulation</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -407,6 +410,60 @@ def get_species_thermodynamic_properties(species_name: str, temperature_k: float
             "pressure_Pa": pressure_pa
         })
 
+def process_simulation_snapshot(process_type: str, inlet_composition: str, temperature_k: float, pressure_pa: float, flow_rate: float, reactor_params: dict = None) -> str:
+    """    Simulates a chemical process snapshot based on the specified process type, inlet composition, temperature, pressure, and flow rate.
+    Args:
+        process_type (str): The type of process to simulate (e.g., 'combustion', 'reaction', 'distillation').
+        inlet_composition (str): The inlet composition as a string (e.g., 'CH4:1, O2:2, N2:7.52').
+        temperature_k (float): The temperature in Kelvin.
+        pressure_pa (float): The pressure in Pascals.
+        flow_rate (float): The flow rate in moles per second.
+        reactor_params (dict, optional): Additional parameters for the reactor simulation, such as volume.
+    Returns:
+        str: A JSON string containing the simulation results, including outlet composition and conversion,
+             or an error message if the simulation fails.
+    """
+    
+    try:
+        gas = ct.Solution('gri30.yaml')
+        gas.TPX = temperature_k, pressure_pa, inlet_composition
+        reactor = ct.IdealGasReactor(gas, volume=reactor_params.get("volume", 1.0))
+        sim = ct.ReactorNet([reactor])
+        sim.advance_to_steady_state()
+        return json.dumps({
+            "status": "success",
+            "process_type": process_type,
+            "outlet_composition": {species: reactor.thermo.X[i] for i, species in enumerate(gas.species_names)},
+            "conversion": 1 - reactor.thermo[inlet_composition.split(":")[0]].X
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": f"Process simulation failed: {str(e)}"})
+
+def generate_phase_diagram(components: list, temperature_k: float, pressure_pa: float, mole_fractions: list) -> str:
+    """    Generates a phase diagram for a mixture of components at specified temperature and pressure.
+    Args:
+        components (list): List of chemical components (e.g., ['CH4', 'O2', 'N2']).
+        temperature_k (float): The temperature in Kelvin.
+        pressure_pa (float): The pressure in Pascals.
+        mole_fractions (list): List of mole fractions corresponding to the components.
+    Returns:
+        str: A JSON string containing the phase diagram data, including vapor and liquid compositions,
+             or an error message if the generation fails.
+    """
+    
+    try:
+        gas = ct.Solution('gri30.yaml')
+        gas.TPX = temperature_k, pressure_pa, {comp: x for comp, x in zip(components, mole_fractions)}
+        
+        return json.dumps({
+            "status": "success",
+            "components": components,
+            "phase_data": {"vapor_composition": gas.X, "liquid_composition": gas.X}  # Simplified
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": f"Phase diagram generation failed: {str(e)}"})
+
+
 def get_safety_information_from_url(url: str, keyword: str = "") -> str:
     """
     Fetches content from a given URL and attempts to extract relevant safety information based on a keyword.
@@ -547,9 +604,11 @@ available_tools = {
     "calculate_adiabatic_flame_temperature": calculate_adiabatic_flame_temperature,
     "get_species_molecular_weight": get_species_molecular_weight,
     "get_equilibrium_concentrations": get_equilibrium_concentrations,
-    "get_species_thermodynamic_properties": get_species_thermodynamic_properties, # NEW TOOL
-    "get_safety_information_from_url": get_safety_information_from_url, # NEW TOOL
-    "get_rsc_data": get_rsc_data # NEW TOOL
+    "get_species_thermodynamic_properties": get_species_thermodynamic_properties,
+    "process_simulation_snapshot": process_simulation_snapshot,
+    "generate_phase_diagram": generate_phase_diagram,
+    "get_safety_information_from_url": get_safety_information_from_url,
+    "get_rsc_data": get_rsc_data
 }
 
 
@@ -614,6 +673,29 @@ Outputs the thermodynamic properties in J/kmol or J/kmol-K.
     temperature_k (float, Kelvin)
     pressure_pa (float, Pascals)
 
+- process_simulation_snapshot: Simulates a chemical process snapshot.
+This requires the process type, inlet composition, temperature in Kelvin, pressure in Pascals, flow rate in moles per second, and optional reactor parameters (e.g., volume).
+Outputs the outlet composition and conversion. If the temperature and pressure are not specified, assume 298.15 Kelvin and 101325 Pascals. State in the query output that those values were assumed.
+    process_type (string, e.g., 'combustion', 'reaction', 'distillation')
+    inlet_composition (string, e.g., 'CH4:1, O2:2, N2:7.52')
+    temperature_k (float, Kelvin)
+    pressure_pa (float, Pascals)
+    flow_rate (float, moles per second)
+    reactor_params (dict, optional, e.g., {'volume': 1.0})
+
+- generate_phase_diagram: Generates a phase diagram for a mixture.
+This requires the components, temperature in Kelvin, pressure in Pascals, and mole fractions.
+Outputs the phase diagram data, including vapor and liquid compositions.
+Always assume the temperature and pressure are 298.15 Kelvin and 101325 Pascals if not specified.
+Components should be provided as a list of chemical formulas, and mole fractions should match the components.
+Ensure the mole fractions sum to 1.0.
+    components (list, e.g., ['CH4', 'O2', 'N2'])
+    temperature_k (float, Kelvin) 
+    pressure_pa (float, Pascals)
+    mole_fractions (list, e.g., [0.1, 0.2, 0.7])
+
+
+
 get_safety_information_from_url: Extracts safety information from a URL (e.g., SDS, OSHA page).
 url (string, valid URL)
 keyword (string, optional, e.g., 'flammability')
@@ -630,6 +712,13 @@ Parse User Intent: Determine if the query requires:
 * Once the parameters are available, immediately call one of the defined tools using the JSON format specified above.
 * Then, output the tool call JSON and a brief message indicating the action being taken (e.g., "Executing calculation..." or "Fetching data...").
 * If no tool is needed, respond with a detailed explanation based on the query.
+* If the query is about safety information, check if a URL is provided. If not, ask for a URL to fetch data from.
+* If a URL is provided, call the get_safety_information_from_url tool with the URL and optional keyword.
+* If the query is about chemical properties or data, check if it requires a search on the Royal Society of Chemistry (RSC) website. If so, call the get_rsc_data tool with the query.
+* If the query is about a chemical process simulation, call the process_simulation_snapshot tool with the required parameters.
+* If the query is about generating a phase diagram, call the generate_phase_diagram tool with the required parameters.
+* Never say the name of the tool you're using in your response. Just provide the results or the action being taken.
+* At most, if you are required to provide information about yourself, just say: "I am Catalyst Mind, a chatbot powered by Google Generative AI, specializing in chemical operations and process control. I can assist with calculations, data retrieval, and analysis related to chemical processes."
 
 
 
