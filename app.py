@@ -90,7 +90,6 @@ st.markdown("""
 
 # --- API Key Configuration ---
 api_key = st.secrets.get("GEMINI_API_KEY")
-api_key = "AIzaSyDa9i75ooUlyakmOT35YFOR58g0TG-a2T0"
 
 if api_key is None:
     st.error("Google Generative AI API key is not set. Please configure it in Streamlit Secrets.")
