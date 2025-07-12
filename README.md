@@ -147,7 +147,7 @@ N.B: Find attached a sample picture that can be downloaded and fed as a prompt t
 
 #### 7. What is the equilibrium composition of a mixture containing 1mole of CH4, 3 moles of hydrogen and 7.3 moles of nitrogen at 453Kelvin and 2 bar?
 
-### 8. Provide information on the hazardous effects of ammonia and how it can be managed efficiently so as to maximize safety and minimize injury?
+#### 8. Provide information on the hazardous effects of ammonia and how it can be managed efficiently so as to maximize safety and minimize injury?
 This prompt invokes the Wikipedia home page to obtain the relevant information coupled with its Agentic AI system.
 
 ---
