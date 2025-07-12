@@ -89,7 +89,8 @@ st.markdown("""
 
 
 # --- API Key Configuration ---
-api_key = st.secrets.get("GEMINI_API_KEY")
+# api_key = st.secrets.get("GEMINI_API_KEY")
+api_key = "AIzaSyBCjtvQ7kvYQcImqRToLSDyfkofCGiRM74"
 
 if api_key is None:
     st.error("Google Generative AI API key is not set. Please configure it in Streamlit Secrets.")
@@ -344,7 +345,8 @@ def get_equilibrium_concentrations(mixture_formula: str, temperature_k: float, p
         gas.TPX = temperature_k, pressure_pa, mixture_formula
         gas.equilibrate('TP')
 
-        mole_fractions = {species.name: gas.X[species.index] for species in gas.species()}
+        # mole_fractions = {species.name: gas.X[species.index] for species in gas.species()}
+        mole_fractions = {species: mole_fraction for species, mole_fraction in zip(gas.species_names, gas.X)}
         
         return json.dumps({
             "status": "success",
@@ -584,25 +586,33 @@ Defined Structure for JSON Format
 }
 
 Available Tools and Parameters:
-calculate_adiabatic_flame_temperature: Calculates adiabatic flame temperature.
-fuel (string, e.g., 'CH4', 'C2H5OH')
-oxidizer (string, e.g., 'O2', 'air')
-equivalence_ratio (float, e.g., 1.0 for stoichiometric)
-initial_temp_k (float, Kelvin, e.g., 298.15)
-initial_pressure_pa (float, Pascals, e.g., 101325.0)
+- calculate_adiabatic_flame_temperature: Calculates adiabatic flame temperature.
+This requires the fuel and oxidizer chemical formulas, equivalence ratio, initial temperature in Kelvin, and initial pressure in Pascals.
+If all the values aren't provided, ask the user to specify them. If all parameters are provided except the initial temperature and pressure, use 298.15 Kelvin and 101325 Pascals.
+State clearly that the initial pressure and temperature are assumed to be 1 atm (101325 Pa) and 298.15K if not specified.
+    fuel (string, e.g., 'CH4', 'C2H5OH')
+    oxidizer (string, e.g., 'O2', 'air')
+    equivalence_ratio (float, e.g., 1.0 for stoichiometric)
+    initial_temp_k (float, Kelvin, e.g., 298.15)
+    initial_pressure_pa (float, Pascals, e.g., 101325.0)
 
-get_species_molecular_weight: Retrieves molecular weight of a species.
-species_name (string, e.g., 'CO2', 'H2O')
+- get_species_molecular_weight: Retrieves molecular weight of a species.
+This requires the chemical formula or common name of the species and outputs the molecular weight of the specified component.
+    species_name (string, e.g., 'CO2', 'H2O')
 
-get_equilibrium_concentrations: Calculates equilibrium mole fractions.
-mixture_formula (string, e.g., 'CH4:1, O2:2, N2:7.52')
-temperature_k (float, Kelvin, e.g., 1500.0)
-pressure_pa (float, Pascals, e.g., 101325.0)
+- get_equilibrium_concentrations: Calculates equilibrium mole fractions.
+This requires the initial mixture formula, temperature in Kelvin, and pressure in Pascals.
+Outputs the equilibrium mole fractions of all species present in the mixture.
+    mixture_formula (string, e.g., 'CH4:1, O2:2, N2:7.52')
+    temperature_k (float, Kelvin, e.g., 1500.0)
+    pressure_pa (float, Pascals, e.g., 101325.0)
 
-get_species_thermodynamic_properties: Retrieves thermodynamic properties (enthalpy, entropy, Gibbs, heat capacity).
-species_name (string, e.g., 'H2O')
-temperature_k (float, Kelvin)
-pressure_pa (float, Pascals)
+- get_species_thermodynamic_properties: Retrieves thermodynamic properties (enthalpy, entropy, Gibbs, heat capacity).
+This requires the chemical formula or common name of the species, temperature in Kelvin, and pressure in Pascals.
+Outputs the thermodynamic properties in J/kmol or J/kmol-K.
+    species_name (string, e.g., 'H2O')
+    temperature_k (float, Kelvin)
+    pressure_pa (float, Pascals)
 
 get_safety_information_from_url: Extracts safety information from a URL (e.g., SDS, OSHA page).
 url (string, valid URL)
@@ -613,10 +623,16 @@ query (string, e.g., 'methane properties')
 
 Workflow for Handling Queries:
 Parse User Intent: Determine if the query requires:
-General information (use your knowledge base).
-A calculation (use a Cantera-based tool).
+* Before processing, check if the query is within the domain of chemical operations and process control.
+* If not, respond with: "I'm sorry, but that query is outside my expertise in chemical operations and process control. Please ask about chemical processes or related topics."
+* Afterwards, check if each query requires a tool. If it requires a tool, ensure all necessary parameters are provided.
+* If parameters are missing, ask the user to provide them (e.g., "Please provide the fuel and oxidizer for the adiabatic flame temperature calculation.").
+* Once the parameters are available, immediately call one of the defined tools using the JSON format specified above.
+* Then, output the tool call JSON and a brief message indicating the action being taken (e.g., "Executing calculation..." or "Fetching data...").
+* If no tool is needed, respond with a detailed explanation based on the query.
 
-External data (use get_rsc_data or get_safety_information_from_url).
+
+
 
 Tool Selection:
 Match the query to the appropriate tool based on keywords (e.g., "adiabatic flame temperature" → calculate_adiabatic_flame_temperature).
