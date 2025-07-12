@@ -541,7 +541,7 @@ def get_rsc_data(query: str) -> str:
         str: A JSON string containing a summary of the extracted RSC data from search results, or an error message.
     """
     # RSC search URL. Using 'q' for query parameter.
-    search_url = f"https://www.rsc.org/search/results/?q={requests.utils.quote(query)}"
+    search_url = f"https://www.rsc.org/search-results?search={requests.utils.quote(query)}"
     
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
