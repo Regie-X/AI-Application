@@ -137,6 +137,8 @@ The application won't provide any relevant information as the query doesn't pert
 
 ### 4. Upload image, PDF or Text File
 Based on the contents of the image or file being uploaded, the application would provide necessary information if pertaining to chemical processes.
+N.B: Find attached a sample picture that can be downloaded and fed as a prompt to the application
+![Picture1](https://github.com/user-attachments/assets/648ce584-7415-426d-b44c-af43fb325ae5)
 
 ### 5. Calculate the adiabatic temperature of methan in air at 300K and 1 atm
 
@@ -144,6 +146,20 @@ Based on the contents of the image or file being uploaded, the application would
 
 ### 7. What is the equilibrium composition of a mixture containing 1mole of CH4, 3 moles of hydrogen and 7.3 moles of nitrogen at 453Kelvin and 2 bar?
 
-N.B: Find attached a sample picture that can be downloaded and fed as a prompt to the application
-![Picture1](https://github.com/user-attachments/assets/648ce584-7415-426d-b44c-af43fb325ae5)
+### 8. Provide information on the hazardous effects of ammonia and how it can be managed efficiently so as to maximize safety and minimize injury?
+This prompt invokes the Wikipedia home page to obtain the relevant information coupled with its Agentic AI system.
+
+---
+## 📌 Upcoming Features
+-  Enthalpy and Gibbs free energy calculation for complex reactions.
+-  Reaction rate estimation tools.
+-  Integration with chemical databases (PubChem, ChemSpider). The current use of Wikipedia poses a limitation on the accuracy of updated information from published articles.
+-  Session export as PDF.
+-  Model fine-tuning for process safety advice
+
+---
+## 👩‍🔬 Built By
+Catalyst Mind was built by **Omoregie Eriayo** as part of a technical initiative to empower engineers with domain-aware AI tools. Designed with precision, professionalism, and process safety in mind.
+
+
 
