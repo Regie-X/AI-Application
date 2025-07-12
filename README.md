@@ -78,7 +78,7 @@ This will trigger "http://localhost:8501" in your browser in which you can:
 - View or download your chat session
 
 ---
-📁 Directory Structure
+📁 ## Directory Structure
 ```bash
 📦 Catalyst-Mind
 ├── app.py                 # Main Streamlit app
@@ -92,17 +92,17 @@ This will trigger "http://localhost:8501" in your browser in which you can:
 ## ☁️ Deployment on Streamlit Community Cloud
 Streamlit Community Cloud makes deployment incredibly easy!
 
-### 1. Push Your Code to GitHub:
+#### 1. Push Your Code to GitHub:
 Ensure your entire project (including app.py, requirements.txt, and the images folder if you're using a local background) is pushed to a GitHub repository. Remember to keep secrets.toml out of your repository!
 
-### 2. Go to Streamlit Community Cloud:
+#### 2. Go to Streamlit Community Cloud:
 Visit share.streamlit.io and log in with your GitHub account.
 
-### 3. Deploy a New App:
+#### 3. Deploy a New App:
 Click "New app" or "Deploy an app."
 Select your repository, branch (e.g., main), and the main file path (app.py).
 
-### 4. Configure Secrets:
+#### 4. Configure Secrets:
 Crucially, in the deployment settings, expand the "Advanced settings" section.
 Add your GEMINI_API_KEY directly in the "Secrets" text area.
 
